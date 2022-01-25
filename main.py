@@ -16,6 +16,12 @@ bot.remove_command('help')
 @bot.event
 async def on_ready():
 	print('Bot is online')
+	
+@bot.command()
+async def ping(ctx):
+    embed = discord.Embed(title="Pong!", description=f'{round(bot.latency*1000)}ms', color=embed_color)
+    await ctx.send(embed=embed)
+
 
 
 @bot.command()
