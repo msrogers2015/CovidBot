@@ -17,7 +17,8 @@ bot.remove_command('help')
 @bot.event
 async def on_ready():
 	print('Bot is online')
-	
+	info_update.start()
+
 @bot.command()
 async def ping(ctx):
     embed = discord.Embed(title="Pong!", description=f'{round(bot.latency*1000)}ms', color=embed_color)
@@ -56,14 +57,13 @@ async def a(ctx, *, location):
 
 
 
-#@tasks.loop(minutes=1440)
+@tasks.loop(minutes=1440)
 async def info_update():
-	r = requests.get('https://api.covid19api.com/summer')
+	r = requests.get('https://api.covid19api.com/summary')
 	data = r.json()
-	countries = data['Countries']
-	print('Starting update')
-	conn = sqlite3.connect('./covid.db')
+	conn = sqlite3.connect('covid.db')
 	cur = conn.cursor()
+	countries = data['Countries']
 	for country in countries:
 		Country = str(country['Country'])
 		NewConfirmed = int(country['NewConfirmed'])
@@ -72,13 +72,15 @@ async def info_update():
 		TotalDeaths = int(country['TotalDeaths'])
 		NewRecovered = int(country['NewRecovered'])
 		TotalRecovered = int(country['TotalRecovered'])
-		print(f'Updating {Country}')
-		cur.execute('''UPDATE countries SET NewConfirmed=?, TotalConfirmed=?,
-				NewDeaths=?, TotalDeaths=?, NewRecovered=?, TotalRecovered=? 
-				WHERE Country=?''',(NewConfirmed, TotalConfirmed, NewDeaths, TotalDeaths, NewRecovered, TotalRecovered, Country)
-	    	print(f'{Country} updated')
-	print('Database updated')
-
-	
+		cur.execute("""UPDATE countries SET NewConfirmed=?,
+						TotalConfirmed=?,
+						NewDeaths=?,
+						TotalDeaths=?,
+						NewRecovered=?,
+						TotalRecovered=? WHERE Country=?""",
+(NewConfirmed,TotalConfirmed,NewDeaths,TotalDeaths,NewRecovered,TotalRecovered,Country))
+	conn.commit()
+	conn.close()
+	print('Finished')
 
 bot.run(TOKEN)

@@ -1,3 +1,5 @@
+import sqlite3
+
 def create_database():
 	conn = sqlite3.connect('./covid.db')
 	cur = conn.cursor()
@@ -8,7 +10,9 @@ def create_database():
 			NewDeaths INTEGER,
 			TotalDeaths INTEGER,
 			NewRecovered INTEGER,
-			TotalRecovered INTEGER);'''
+			TotalRecovered INTEGER);''')
 	conn.commit()
 	conn.close()
 	print('Database Created')
+
+create_database()
