@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import os
 import discord
-#import requests
+import requests
+import sqlite3
 import aiosqlite
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -54,9 +55,30 @@ async def a(ctx, *, location):
 	await db.close()
 
 
-#@tasks.loop(seconds=2.0)
-#async def foo():
-#print('This is a repeat task')
-#foo.start()
+
+#@tasks.loop(minutes=1440)
+async def info_update():
+	r = requests.get('https://api.covid19api.com/summer')
+	data = r.json()
+	countries = data['Countries']
+	print('Starting update')
+	conn = sqlite3.connect('./covid.db')
+	cur = conn.cursor()
+	for country in countries:
+		Country = str(country['Country'])
+		NewConfirmed = int(country['NewConfirmed'])
+		TotalConfirmed = int(country['TotalConfirmed'])
+		NewDeaths = int(country['NewDeaths'])
+		TotalDeaths = int(country['TotalDeaths'])
+		NewRecovered = int(country['NewRecovered'])
+		TotalRecovered = int(country['TotalRecovered'])
+		print(f'Updating {Country}')
+		cur.execute('''UPDATE countries SET NewConfirmed=?, TotalConfirmed=?,
+				NewDeaths=?, TotalDeaths=?, NewRecovered=?, TotalRecovered=? 
+				WHERE Country=?''',(NewConfirmed, TotalConfirmed, NewDeaths, TotalDeaths, NewRecovered, TotalRecovered, Country)
+	    	print(f'{Country} updated')
+	print('Database updated')
+
+	
 
 bot.run(TOKEN)
